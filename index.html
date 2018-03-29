@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Information</title>
+
+</head>
+<style>
+table,th,td {
+  border : 1px solid black;
+  border-collapse: collapse;
+  margin: 0 0 0 25%;}
+th,td {padding: 5px;}
+th{background-color:#3399CC;}
+td:nth-child(odd){background-color:#BDB76B}
+body{background-color:#FFE4B5;}
+a{color:black;text-decoration:none;}
+#sbmt{width:100%;}
+#info,#result{margin:2% 0 0 17%;}
+#Title{font-family:Monotype Corsiva;font-size:200%;margin:0 0 0 40%;color: #990066;}
+</style>
+<body>
+<div id="Title"><b>Student Information</b></div>
+     <input type="text" class="form-control" id="search" placeholder="Search ID..." name="fname">
+	  <button id="searchButton" >Search</button>
+<table id="demo"></table>
+<div id="info"></div>
+<div id="result"></div>
+<script type="text/javascript" src="jquery.min.js"></script>
+<script>
+
+window.addEventListener("load", function() {
+           loadOfflines();
+			loadXMLDoc();
+		});
+		
+function loadXMLDoc() {
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      myFunction(this);
+    }
+  };
+  xmlhttp.open("GET","http://localhost/A/sample.php", true);
+  xmlhttp.send();
+}
+function loadOfflines(){
+  document.getElementById("demo").innerHTML = localStorage.getItem("data");
+}
+//=============================================================================
+ // display data from database
+function myFunction(xml) {
+  var i;
+  var xmlDoc = xml.responseXML;
+  var table="<table id=mytable><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Address</th><th>Contact Number</th></tr>";
+  var x = xmlDoc.getElementsByTagName("student");
+  for (i = 0; i <x.length; i++) { 
+     var ids = x[i].getElementsByTagName("ID_num")[0].childNodes[0].nodeValue;
+	 var f =  x[i].getElementsByTagName("f_name")[0].childNodes[0].nodeValue;
+	 var l = x[i].getElementsByTagName("l_name")[0].childNodes[0].nodeValue;
+	 var a = x[i].getElementsByTagName("address")[0].childNodes[0].nodeValue;
+	 var c = x[i].getElementsByTagName("contact")[0].childNodes[0].nodeValue;
+    table += "<tr>";
+	table +="<td>"+ ids + "</td>";
+	table +="<td>" + f +  "</td>";
+	table +="<td>" + l + "</td>";
+	table +="<td>" + a + "</td>";
+	table +="<td>" + c + "</td>";
+	table +="<input type=hidden id=Id_num1"+i+" value="+ids+">";
+	table +="<input type=hidden id=F_name1"+i+" value="+f+">";
+	table +="<input type=hidden id=L_name1"+i+" value="+l+">";
+	table +="<input type=hidden id=Add1"+i+"    value="+a+">";	
+	table +="<input type=hidden id=Contc1"+i+" value="+c+">";
+	table +="<td>" +
+	"<button onclick=information()>Insert</button>" +
+	"<button><a href=# onclick=remove("+i+")>Delete</a></button>" +
+	"<button><a href=# onclick=update_info("+i+")>Update</a></button></td></tr></table>";
+
+ }
+
+  document.getElementById("demo").innerHTML = table;
+  
+}
+//display data if it is offline
+function offline(xml) {
+  var i;
+  var xmlDoc = xml.responseXML;
+  var tables="<table id=mytable><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Address</th><th>Contact Number</th></tr>";
+  var x = xmlDoc.getElementsByTagName("student");
+  for (i = 0; i <x.length; i++) { 
+     var ids = x[i].getElementsByTagName("ID_num")[0].childNodes[0].nodeValue;
+	 var f =  x[i].getElementsByTagName("f_name")[0].childNodes[0].nodeValue;
+	 var l = x[i].getElementsByTagName("l_name")[0].childNodes[0].nodeValue;
+	 var a = x[i].getElementsByTagName("address")[0].childNodes[0].nodeValue;
+	 var c = x[i].getElementsByTagName("contact")[0].childNodes[0].nodeValue;
+    tables += "<tr>";
+	tables +="<td>"+ ids + "</td>";
+	tables +="<td>" + f +  "</td>";
+	tables +="<td>" + l + "</td>";
+	tables +="<td>" + a + "</td>";
+	tables +="<td>" + c + "</td>";
+	tables +="</tr></table>" ;
+}
+ if(typeof(Storage)!=="Undefined"){
+localStorage.setItem("data",tables);
+}
+	document.getElementById("demo").innerHTML = tables;
+}
+//=======================================================================================
+  // insert data
+function information(){
+var displayForm;
+   displayForm="<table id=form_data>";
+   displayForm+="<th colspan=2>Type your Personal Information:</th>";
+   displayForm+="<tr><td>First Name</td><td><input type=text name=fname id=fname  required=required></td></tr>";
+   displayForm+="<tr><td>Last Name</td><td><input type=text name=lname id=lname required=required></td></tr>";
+   displayForm+="<tr><td>Address</td><td><input type=text name=add id=add required=required></td></tr>";
+   displayForm+="<tr><td>Contact #</td><td><input type=number name=c_num id=c_num maxlength=11 required=required></td></tr>";
+   displayForm+="<tr><td colspan=2><input type=submit id=sbmt name=submit value=OK onclick=insertData()></td></tr>";
+   displayForm+="</table>";
+  document.getElementById("info").innerHTML = displayForm;
+}
+function insertData(){
+var hr = new XMLHttpRequest();
+var url = "http://localhost/A/insert.php";
+var fname = document.getElementById("fname").value;
+var lname = document.getElementById("lname").value;
+var add = document.getElementById("add").value;
+var c_num = document.getElementById("c_num").value;
+var vars = "fname="+fname+"&lname="+lname+"&add="+add+"&c_num="+c_num;
+hr.open("POST",url,true);
+hr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+hr.onreadystatechange = function(){
+if (hr.readyState == 4 && hr.status == 200){
+var return_data = hr.responseText;
+document.getElementById("info").innerHTML = "Successfully Added !!!";
+}
+}
+hr.send(vars);
+document.getElementById("info").innerHTML = "Proccessing......";
+}
+//==================================================================================
+ //delete data
+function remove(p)
+{
+ var hr = new XMLHttpRequest();
+  var url = "http://localhost/A/delete.php";
+  var id_num = document.getElementById("Id_num1"+p).value;
+  var val = "ID="+id_num;
+hr.open("POST",url,true);
+hr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+hr.onreadystatechange = function(){
+if (hr.readyState == 4 && hr.status == 200){
+var return_data = hr.responseText;
+document.getElementById("info").innerHTML = "Successfully Deleted !!!";
+}
+}
+hr.send(val);
+document.getElementById("info").innerHTML = "Proccessing......";
+}
+//==================================================================================
+//update data
+function update_info(n){
+var id_n2 = document.getElementById("Id_num1"+n).value;
+var fname2 = document.getElementById("F_name1"+n).value;
+var lname2 = document.getElementById("L_name1"+n).value;
+var add2 = document.getElementById("Add1"+n).value;
+var c_num2 = document.getElementById("Contc1"+n).value;
+var displayForm;
+   displayForm="<table id=form_data>";
+   displayForm+="<th colspan=2>Update Personal Information:</th>";
+   displayForm+="<tr><td>ID</td><td><input type=hidden id=id1 value="+id_n2+">"+id_n2+"  </td></tr>";
+   displayForm+="<tr><td>First Name</td><td><input type=text  id=fname1 value="+fname2+" ></td></tr>";
+   displayForm+="<tr><td>Last Name</td><td><input type=text  id=lname1 value="+lname2+" ></td></tr>";
+   displayForm+="<tr><td>Address</td><td><input type=text  id=add1 value="+add2+" ></td></tr>";
+   displayForm+="<tr><td>Contact #</td><td><input type=text  id=c_num1  maxlength=11 value="+c_num2+" ></td></tr>";
+   displayForm+="<tr><td colspan=2><button id=sbmt onclick=updateData()>UPDATE</button></td></tr>";
+   displayForm+="</table>";
+  document.getElementById("info").innerHTML = displayForm;
+}
+function updateData(){
+var hr = new XMLHttpRequest();
+var url = "http://localhost/A/update.php";
+var id = document.getElementById("id1").value;
+var fname = document.getElementById("fname1").value;
+var lname = document.getElementById("lname1").value;
+var add = document.getElementById("add1").value;
+var c_num = document.getElementById("c_num1").value;
+var vars = "Id="+id+"&fname="+fname+"&lname="+lname+"&add="+add+"&c_num="+c_num;
+hr.open("POST",url,true);
+hr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+hr.onreadystatechange = function(){
+if (hr.readyState == 4 && hr.status == 200){
+var return_data = hr.responseText;
+document.getElementById("info").innerHTML = "Successfully Updated !!!";
+}
+}
+hr.send(vars);
+document.getElementById("info").innerHTML = "Proccessing......";
+}
+//=========================================================================
+$(document).ready(function () {
+   //GLOBAL VAR
+  var keyword = '';
+  var catType = '';
+  var pub = '';
+ 
+  var i = 0;
+ 
+  $("#search").on("keyup",function () {
+    keyword = $("input#search").val();
+   // size = keyword.length;
+    //Reset any message
+    var errMsg = '';
+    pub = '';
+ 
+    if (keyword == '') {
+      errMsg += 'Please enter a search term';
+    } else if (catType == 'none') {
+      errMsg += 'Please select a category';
+    } else {
+      searchThis();
+    }
+ 
+    if (errMsg != '') {
+      pub += '<div class="error">' ;
+      pub += errMsg;
+      pub += '</div>' ;
+    }
+ 
+    //Show error
+    $('#result').html(pub);
+ 
+  });
+ 
+  function searchThis() {
+    $.ajax({
+      type: "GET",
+      url: "http://localhost/A/sample.php",
+      dataType: "xml",
+      success: function (xml) {
+        loadPublication(xml)
+      }
+    });
+  }
+ 
+  function loadPublication(xmlData) {
+    i = 0;
+    var row;
+ 
+    var searchExp = "";
+ 
+    $(xmlData).find('student').each(function () {
+	  var fname = $(this).find('f_name').text();
+       size = keyword.length;
+        f = fname.substring(0,size);
+      var fn = $(f).find('f_name').text();
+      var l = $(f).find('l_name').text();
+     // var height = $(this).find('height').text();
+	  
+      //Format the keyword expression
+      var exp = new RegExp(f,"gi");
+      
+      //Check if there is a category selected;
+      //if not, use height column as a default search
+      if (searchExp != null) {
+ 
+        //Start building the result
+        if ((i % 2) == 0) {
+          row = 'even';
+        } else {
+          row = 'odd';
+        }
+ 
+        i++;
+ 
+        pub += '<tr class="row ' + row + '">' ;
+        pub += '<td valign="top" class="col1">' + fn + '</td>' ;
+        pub += '<td valign="top" class="col2">' + l + '</td>';
+        pub += '</tr>' ;
+      }
+    });
+ 
+    if (i == 0) {
+      pub += '<div class="error">'  ;
+      pub += 'No Result was Found'  ;
+      pub += '</div>' ;
+ 
+      //Populate the result
+      $('#result').html(pub);
+    } else {
+      //Pass the result set
+      showResult(pub);
+    }
+  }
+ 
+  function showResult(resultSet) {
+ 
+    //Show the result
+    pub = '<div class="message">There are ' + i + ' results!</div>';
+    pub += '<table id="grid" border="0">';
+    pub += '<thead><tr>';
+    pub += '<th class="col1">Name</th>' ;
+    pub += '<th class="col2">Age</th>';
+   // pub += '<th class="col3">Height</th>' + 'n';
+    pub += '</tr></thead>';
+    pub += '<tbody>';
+ 
+    pub += resultSet;
+ 
+    pub += '</tbody>';
+    pub += '</table>';
+ 
+    //Populate
+    $('#result').html(pub)
+ 
+    //$('#grid').tablesorter();
+  }
+});
+</script>
+</body>
+</html>
